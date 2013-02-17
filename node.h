@@ -13,12 +13,18 @@ class Node {
 		double reward;
 		int direction;		//0 - up, 1 - left, 2 - down, 3 - right
 		double utility;
+		double upQ;
+		double leftQ;
+		double downQ;
+		double rightQ;
 	
 	public:
 		Node(){};
 		Node(bool wallFlag, int terminalSet)
 		{
+			upQ = leftQ = rightQ = downQ = 0;
 			utility = 0;
+
 			wall = wallFlag;
 			terminal = terminalSet;
 			start = false;
@@ -71,6 +77,33 @@ class Node {
 		{
 			return wall;
 		};
+
+		void setActionQ (int action, double Q)
+		{
+			if (action == 0)
+				upQ = Q;
+			if (action == 1)
+				leftQ = Q;
+			if (action == 2)
+				downQ = Q;
+			if (action == 3)
+				rightQ = Q;
+
+		}
+
+		double getActionQ (int action)
+		{
+			if (action == 0)
+				return upQ;
+			if (action == 1)
+				return leftQ;
+			if (action == 2)
+				return downQ;
+				
+			return rightQ;
+
+
+		}
 
 		void setUtility(double n)
 		{

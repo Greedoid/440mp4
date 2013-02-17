@@ -1,7 +1,11 @@
 #include "maze.h"
 #include<math.h>
 #include<iostream>
+#include<time.h>
+#include<stdio.h>
+#include<stdlib.h>
 #include<iomanip>
+#include<algorithm>
 
 
 
@@ -13,6 +17,59 @@ double Maze::getNodeUtil(int x, int y, int origX, int origY)
 	}
 	return mazeVector[x][y].getUtility();
 
+};
+
+double RMS()
+{
+	
+};
+
+double Maze::getNextQ(int x, int y, int action)
+{
+	int newRow = x;
+	int newColumn = y;
+	int rowSize = mazeVector.size();
+	int columnSize = mazeVector[0].size();
+
+	if (action == 0)				//up
+	{
+		newRow = std::max(newRow - 1, 0); 
+	}
+	if (action == 1)					//left
+	{	
+		newColumn =  std::max(newColumn - 1, 0);
+	}
+	if (action == 2)				//down
+	{
+		newRow = std::min(newRow+1, rowSize-1);
+	}
+	if (action == 3)				//right
+	{
+		newColumn = std::min(newColumn+1, columnSize-1);
+	}
+
+
+	if (mazeVector[newRow][newColumn].isWall())
+	{
+		return mazeVector[x][y].getUtility();
+	}
+	
+	return mazeVector[newRow][newColumn].getUtility();
+};
+
+int randomAction()
+{
+	return rand() % 4;
+};
+
+int Maze::randomRow()
+{
+	return rand() % 4;
+};
+
+int Maze::randomColumn()
+{
+	return rand() % 6;
 };
 
 void Maze::populateMaze()
@@ -139,7 +196,73 @@ void Maze::utilityList()
 	{
 		for (int j = 0 ; j < mazeVector.size(); j++)
 		{
-				std::cout << "("<<i<<" , "<<j<<"): " << mazeVector[j][i].getUtility() << std::endl;
+		//		std::cout << "("<<i<<" , "<<j<<"): " << mazeVector[j][i].getUtility();
+				std::cout << mazeVector[i][j].getUtility() << ",";
 		}
 	}
 };
+
+void Maze::QLearning(int n)
+{
+
+	int t = 1;
+	for (int times = 0; times < n; times++)
+	{
+		srand(time(NULL));
+		double alpha = (double) 60/(double)(t+59);
+		int action = randomAction();
+		int i = randomRow();
+		int j = randomColumn();
+
+		//std::cout << "Action chosen is : " << action << "\n";
+		//std::cout << "Cell is : [" << i << "][" << j << "]\n";
+		
+		if (mazeVector[i][j].isTerminal() == false)
+		{
+		 	t++;
+		//	std::cout << "t is: " << t << "\n";
+			double upQ = getNextQ(i, j, 0);
+			double leftQ = getNextQ(i, j, 1);
+			double downQ = getNextQ(i, j, 2);
+			double rightQ = getNextQ(i, j, 3);
+		//	std::cout << "UP LEFT DOWN RIGHT : " << upQ << "  " << leftQ << "  " << downQ << "  " << rightQ << "\n";
+		
+			double Q_Maximum = std::max( std::max(upQ, downQ), std::max(leftQ, rightQ));
+
+
+	
+			if (upQ == Q_Maximum)
+			{
+		//		std::cout << "Up selected!\n";
+				mazeVector[i][j].setDirection(0);
+			}
+			if (leftQ == Q_Maximum)
+			{
+		//		std::cout << "Left selected!\n";
+				mazeVector[i][j].setDirection(1);
+			}
+			if (downQ == Q_Maximum)
+			{
+		//		std::cout << "Down selected!\n";
+				mazeVector[i][j].setDirection(2);
+			}
+			if (rightQ == Q_Maximum)
+			{
+		//		std::cout << "Right selected!\n";
+				mazeVector[i][j].setDirection(3);
+			}
+
+			mazeVector[i][j].setActionQ(action, mazeVector[i][j].getActionQ(action) + alpha*(mazeVector[i][j].getReward() + discountDoubleCheck*(Q_Maximum-mazeVector[i][j].getActionQ(action))));
+
+			double utilityMake = std::max( std::max(mazeVector[i][j].getActionQ(1), mazeVector[i][j].getActionQ(3)), std::max(mazeVector[i][j].getActionQ(0),mazeVector[i][j].getActionQ(2)));
+
+		//	std::cout << "UTILITY SET AS : " << utilityMake << std::endl;
+			mazeVector[i][j].setUtility(utilityMake);
+		
+
+		}
+
+	}
+
+};
+
